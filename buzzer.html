@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+    <title>GG Buzzer</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link href="css/bootstrap.css" type="text/css">
+    <script>
+        var name = "";
+        var color = "";
+
+        $(function () {
+            var socket = io();
+            socket.on('load buzzer', function (msg) {
+                if (msg != "") {
+                    $("#buzzer").css('border-color', msg);
+                    $("#buzzer").prop("disabled", true);
+                }
+            });
+
+            $('#buzzer').click(function () {
+                if (name != "" && color != "") {
+                    socket.emit('buzzer press', name + ";" + color);
+                    return false;
+                }
+            });
+            $('#btn_setplayer').click(function () {
+                if ($("#input_color").val() != "" && $("#input_name").val()) {
+                    color = $("#select_color").val();
+                    name = $("#input_name").val();
+                    $("#player_area").css('visibility', 'hidden');
+                    $("#buzzer").css('background-color', color);
+                    $("#name").text(name);
+                    socket.emit('new player', name + ";" + color);
+                }
+            });
+            socket.on('buzzer press', function (msg) {
+                $("#buzzer").css('border-color', msg);
+                $("#buzzer").prop("disabled", true);
+            });
+            socket.on('buzzer unlocked', function (msg) {
+                $("#buzzer").css('border-color', "grey");
+                $("#buzzer").prop("disabled", false);
+            });
+            socket.on('successful pressed', function (msg) {
+                var audio = new Audio('./sounds/Player_Change_4.mp3');
+                audio.play();
+            });
+            socket.on('failed pressed', function (msg) {
+                var audio = new Audio('./sounds/Negative_Dongs_5.mp3');
+                audio.play();
+            });
+            socket.on('update ranking', function (msg) {
+                $("#ranking").text("");
+
+                $(msg).each(function (index, item) {
+                    $("#ranking").append("<tr id='"+item.SocketID+"'><td>"+ (index + 1) +"</td><td>"+item.Color+"</td><td>"+item.Name+"</td><td>"+item.Points+" Pkt.</td></tr>");
+                })
+            });
+        });
+    </script>
+    <style>
+        .btn:disabled{
+            opacity: 1 !important;
+        }
+        option:hover{
+            background-color: unset !important;
+        }
+    </style>
+</head>
+<body style="background-color:lightgray">
+    <div class="container" style="border:solid 1px black">
+        <div class="row d-flex justify-content-center">
+            <p class="h1">Guerilla Gaming Buzzer</p>
+        </div>
+        <br />
+        <br />
+        <br />
+        <div class="row d-flex justify-content-center">
+            <table class="table">
+                <thead></thead>
+                <tbody id="ranking"></tbody>
+            </table>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <p class="h2" id="name"></p>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey" />
+        </div>
+        <div class="row d-flex justify-content-center">
+            <div id="player_area">
+                <input type="text" id="input_name" value="Name" />
+                Farbe:
+                <select class="form-control" id="select_color">
+                    <option style="background-color:green;" value="green"></option>
+                    <option style="background-color:red;" value="red"></option>
+                    <option style="background-color:blue;" value="blue"></option>
+                    <option style="background-color:gold;" value="gold"></option>
+                    <option style="background-color:yellow;" value="yellow"></option>
+                    <option style="background-color:silver;" value="silver"></option>
+                    <option style="background-color:purple;" value="purple"></option>
+                </select>
+                <input type="button" id="btn_setplayer" value="Speichern" />
+            </div>
+        </div>
+    </div>
+</body>
+</html>

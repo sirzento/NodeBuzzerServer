@@ -1,0 +1,6 @@
+ => Einstellungen
+ - Namen anzeigen beim drücken An/Aus
+ - Ton beim Erfolgreichen drücken An/Aus (Selber Ton/ bei anderen)
+ => Timer nach klicken?
+ => Punkteanzeige / Leaderboard (Farbe | Name | Punkte) (Rahmen bei Erfolgreich)
+ => Color picker / dropdown menu

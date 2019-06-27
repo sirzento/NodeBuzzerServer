@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+    <title>GG Buzzer</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <link href="css/bootstrap.css" type="text/css">
+    <script>
+        var name = "";
+        var color = "";
+
+        $(function () {
+            var socket = io();
+            $('#buzzer').click(function () {
+                if (name != "" && color != "") {
+                    socket.emit('buzzer press', name + ";" + color);
+                    return false;
+                }
+            });
+            $('#btn_unlockbuzzer').click(function () {
+                socket.emit('buzzer unlocked', "");
+                return false;
+            });
+            $('#btn_setname').click(function () {
+                if ($("#input_name").val() != "") {
+                    name = $("#input_name").val();
+                    $("#name_area").css('visibility', 'hidden');
+                    $("#name").text(name);
+                }
+            });
+            $('#btn_setcolor').click(function () {
+                if ($("#input_color").val() != "") {
+                    color = $("#input_color").val();
+                    $("#color_area").css('visibility', 'hidden');
+                    $("#buzzer").css('background-color', color);
+                }
+            });
+            socket.on('buzzer press', function (msg) {
+                $("#buzzer").css('border-color', msg);
+                $("#buzzer").prop("disabled", true);
+            });
+            socket.on('buzzer unlocked', function (msg) {
+                $("#buzzer").css('border-color', "grey");
+                $("#buzzer").prop("disabled", false);
+            });
+        });
+    </script>
+    <style>
+        .btn:disabled {
+            opacity: 1 !important;
+        }
+    </style>
+</head>
+<body style="background-color:lightgray">
+    <div class="container" style="border:solid 1px black">
+        <div class="row d-flex justify-content-center">
+            <p class="h1">Guerilla Gaming Buzzer</p>
+        </div>
+        <br />
+        <br />
+        <br />
+        <div class="row d-flex justify-content-center">
+            <p class="h2" id="name"></p>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey" />
+        </div>
+        <div class="row d-flex justify-content-center">
+            <div id="name_area">
+                <input type="text" id="input_name" /><input type="button" id="btn_setname" value="Speichern" />
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <div id="color_area">
+                <input type="text" id="input_color" /><input type="button" id="btn_setcolor" value="Speichern" />
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center">
+            <input type="button" id="btn_unlockbuzzer" value="Buzzer freigeben" class="btn btn-primary" />
+        </div>
+    </div>
+</body>
+</html>

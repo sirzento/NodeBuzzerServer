@@ -6,50 +6,88 @@
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <link href="css/bootstrap.css" type="text/css">
+    <!--<script src="./js/bootstrap.js" type="text/javascript"></script>
+    <link href="./css/bootstrap.css" type="text/css">-->
     <script>
         var name = "";
         var color = "";
+        var currentPlayer = {};
 
         $(function () {
             var socket = io();
+            socket.on('load buzzer', function (msg) {
+                if (JSON.stringify(msg) != JSON.stringify(new Object())) {
+                    $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                    $("#buzzer").css("background-color", "red");
+                    $("#buzzer").val("Gesperrt");
+                } else {
+                    $("#buzzer").css("background-color", "green");
+                    $("#buzzer").val("Frei");
+                }
+            });
             $('#buzzer').click(function () {
-                if (name != "" && color != "") {
-                    socket.emit('buzzer press', name + ";" + color);
-                    return false;
-                }
-            });
-            $('#btn_unlockbuzzer').click(function () {
                 socket.emit('buzzer unlocked', "");
-                return false;
             });
-            $('#btn_setname').click(function () {
-                if ($("#input_name").val() != "") {
-                    name = $("#input_name").val();
-                    $("#name_area").css('visibility', 'hidden');
-                    $("#name").text(name);
-                }
+            $('#btn_options').click(function () {
+                $("#option_area").toggle();
             });
-            $('#btn_setcolor').click(function () {
-                if ($("#input_color").val() != "") {
-                    color = $("#input_color").val();
-                    $("#color_area").css('visibility', 'hidden');
-                    $("#buzzer").css('background-color', color);
+            $('#btn_clear_question').click(function () {
+                socket.emit('clear question', "");
+            });
+            $('#btn_send_question').click(function () {
+                socket.emit('send question', $("#input_new_question").val());
+            });
+            $('#btn_add_points').click(function () {
+                socket.emit('add points', $("#input_points").val());
+            });
+            $('#btn_new_game').click(function () {
+                if (confirm("Alle Daten werden gelöscht")) {
+                    socket.emit('new game', "");
                 }
             });
             socket.on('buzzer press', function (msg) {
-                $("#buzzer").css('border-color', msg);
-                $("#buzzer").prop("disabled", true);
+                currentPlayer = msg;
+                $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                $("#buzzer").css("background-color", "red");
+                $("#buzzer").val("Gesperrt");
+                $("#points_area").css("display", "block");
             });
             socket.on('buzzer unlocked', function (msg) {
-                $("#buzzer").css('border-color', "grey");
-                $("#buzzer").prop("disabled", false);
+                $("#" + msg.SocketID).css('border', "0px");
+                $("#buzzer").css("background-color", "green");
+                $("#buzzer").val("Frei");
+                $("#points_area").css("display", "none");
+            });
+            socket.on('failed pressed', function (msg) {
+                if (document.getElementById('success_sound').checked) {
+                    var audio = new Audio('./sounds/Player_Change_4.mp3');
+                    audio.play();
+                }
+            });
+            socket.on('set question', function (msg) {
+                $("#question").text(msg);
+            });
+            socket.on('clear question', function (msg) {
+                $("#question").text("");
+            });
+            socket.on('new game', function (msg) {
+                location.reload(); 
+            });
+            socket.on('update ranking', function (msg) {
+                $("#ranking").text("");
+                $(msg).each(function (index, item) {
+                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + "</td><td>" + item.Color + "</td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
+                })
             });
         });
     </script>
     <style>
         .btn:disabled {
             opacity: 1 !important;
+        }
+
+        option:hover {
+            background-color: unset !important;
         }
     </style>
 </head>
@@ -62,23 +100,53 @@
         <br />
         <br />
         <div class="row d-flex justify-content-center">
-            <p class="h2" id="name"></p>
+            <div id="question_field" class="col-md-5" style="border: solid 1px black; height:100px">
+                <p id="question"></p>
+            </div>
+        </div>
+        <br />
+        <div class="row d-flex justify-content-center">
+            <input type="text" id="input_new_question" class="col-md-5" style="height:100px" />
+        </div>
+        <br />
+        <div class="row d-flex justify-content-center">
+            <input type="button" id="btn_clear_question" value="Frage löschen" class="btn btn-danger" />
+            <input type="button" id="btn_send_question" value="Frage senden" class="btn btn-success" />
         </div>
         <div class="row d-flex justify-content-center">
-            <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey" />
+            <table class="table">
+                <thead></thead>
+                <tbody id="ranking"></tbody>
+            </table>
         </div>
         <div class="row d-flex justify-content-center">
-            <div id="name_area">
-                <input type="text" id="input_name" /><input type="button" id="btn_setname" value="Speichern" />
+            <div class="form-group row" id="points_area" style="display:none">
+                <label for="inputEmail3" class="col-sm-2 col-form-label">Punkte vergeben:</label>
+                <div class="col-sm-10">
+                    <input type="number" id="input_points" value="10" class="form-control" />
+                </div>
+                <input type="button" class="btn btn-success" value="Add" id="btn_add_points" />
             </div>
         </div>
         <div class="row d-flex justify-content-center">
-            <div id="color_area">
-                <input type="text" id="input_color" /><input type="button" id="btn_setcolor" value="Speichern" />
-            </div>
+            <input type="button" class="btn" value="" id="buzzer" style="width: 100px; height: 50px;" />
         </div>
         <div class="row d-flex justify-content-center">
-            <input type="button" id="btn_unlockbuzzer" value="Buzzer freigeben" class="btn btn-primary" />
+            <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" />
+            <div id="option_area" style="display:none">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
+                    <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzer abspielen.</label>
+                </div>
+            </div>
+        </div>
+        <br />
+        <br />
+        <br />
+        <br />
+        <br />
+        <div class="row d-flex justify-content-center">
+            <input type="button" class="btn btn-danger" value="Neus Spiel" id="btn_new_game" />
         </div>
     </div>
 </body>

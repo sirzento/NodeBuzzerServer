@@ -6,25 +6,33 @@
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-    <link href="css/bootstrap.css" type="text/css">
+    <!--<script src="./js/bootstrap.js" type="text/javascript"></script>
+    <link href="./css/bootstrap.css" type="text/css">-->
     <script>
         var name = "";
         var color = "";
 
         $(function () {
+            $("#show_modal").click();
             var socket = io();
             socket.on('load buzzer', function (msg) {
-                if (msg != "") {
-                    $("#buzzer").css('border-color', msg);
+                if (JSON.stringify(msg) != JSON.stringify(new Object())) {
+                    if (document.getElementById('paint_buzzer_border').checked) {
+                        $("#buzzer").css('border-color', msg.Color);
+                    }
+                    $("#" + msg.SocketID).css('border', "solid 2px yellow");
                     $("#buzzer").prop("disabled", true);
                 }
             });
 
             $('#buzzer').click(function () {
                 if (name != "" && color != "") {
-                    socket.emit('buzzer press', name + ";" + color);
+                    socket.emit('buzzer press', "");
                     return false;
                 }
+            });
+            $('#btn_options').click(function () {
+                $("#option_area").toggle();
             });
             $('#btn_setplayer').click(function () {
                 if ($("#input_color").val() != "" && $("#input_name").val()) {
@@ -37,35 +45,55 @@
                 }
             });
             socket.on('buzzer press', function (msg) {
-                $("#buzzer").css('border-color', msg);
+                if (document.getElementById('paint_buzzer_border').checked) {
+                    $("#buzzer").css('border-color', msg.Color);
+                }
+                $("#" + msg.SocketID).css('border', "solid 2px yellow");
                 $("#buzzer").prop("disabled", true);
             });
             socket.on('buzzer unlocked', function (msg) {
-                $("#buzzer").css('border-color', "grey");
+                if (document.getElementById('paint_buzzer_border').checked) {
+                    $("#buzzer").css('border-color', "grey");
+                }
+                $("#" + msg.SocketID).css('border', "0px");
                 $("#buzzer").prop("disabled", false);
             });
             socket.on('successful pressed', function (msg) {
-                var audio = new Audio('./sounds/Player_Change_4.mp3');
-                audio.play();
+                if (document.getElementById('success_sound').checked) {
+                    var audio = new Audio('./sounds/Player_Change_4.mp3');
+                    audio.play();
+                }
             });
             socket.on('failed pressed', function (msg) {
-                var audio = new Audio('./sounds/Negative_Dongs_5.mp3');
-                audio.play();
+                if (document.getElementById('failed_sound').checked) {
+                    var audio = new Audio('./sounds/Negative_Dongs_5.mp3');
+                    audio.play();
+                }
+            });
+            socket.on('set question', function (msg) {
+                $("#question").text(msg);
+            });
+            socket.on('clear question', function (msg) {
+                $("#question").text("");
+            });
+            socket.on('new game', function (msg) {
+                location.reload(); 
             });
             socket.on('update ranking', function (msg) {
                 $("#ranking").text("");
 
                 $(msg).each(function (index, item) {
-                    $("#ranking").append("<tr id='"+item.SocketID+"'><td>"+ (index + 1) +"</td><td>"+item.Color+"</td><td>"+item.Name+"</td><td>"+item.Points+" Pkt.</td></tr>");
+                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + "</td><td>" + item.Color + "</td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
                 })
             });
         });
     </script>
     <style>
-        .btn:disabled{
+        .btn:disabled {
             opacity: 1 !important;
         }
-        option:hover{
+
+        option:hover {
             background-color: unset !important;
         }
     </style>
@@ -79,6 +107,11 @@
         <br />
         <br />
         <div class="row d-flex justify-content-center">
+            <div id="question_field" class="col-md-5" style="border: solid 1px black; height:100px">
+                <p id="question"></p>
+            </div>
+        </div>
+        <div class="row d-flex justify-content-center">
             <table class="table">
                 <thead></thead>
                 <tbody id="ranking"></tbody>
@@ -91,19 +124,72 @@
             <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey" />
         </div>
         <div class="row d-flex justify-content-center">
-            <div id="player_area">
-                <input type="text" id="input_name" value="Name" />
-                Farbe:
-                <select class="form-control" id="select_color">
-                    <option style="background-color:green;" value="green"></option>
-                    <option style="background-color:red;" value="red"></option>
-                    <option style="background-color:blue;" value="blue"></option>
-                    <option style="background-color:gold;" value="gold"></option>
-                    <option style="background-color:yellow;" value="yellow"></option>
-                    <option style="background-color:silver;" value="silver"></option>
-                    <option style="background-color:purple;" value="purple"></option>
-                </select>
-                <input type="button" id="btn_setplayer" value="Speichern" />
+            <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" />
+            <div id="option_area" style="display:none">
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
+                    <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzer abspielen.</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="failed_sound" checked="checked">
+                    <label class="custom-control-label" for="failed_sound">Sound wenn jemand anderes Buzzert abspielen.</label>
+                </div>
+                <div class="custom-control custom-checkbox">
+                    <input type="checkbox" class="custom-control-input" id="paint_buzzer_border" checked="checked">
+                    <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umfärben beim Buzzern.</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" style="visibility:collapse" id="show_modal">
+    </button>
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+                </div>
+                <div class="modal-body">
+                    <div id="player_area">
+                        <div class="form-group row">
+                            <label for="inputEmail3" class="col-sm-2 col-form-label">Name:</label>
+                            <div class="col-sm-10">
+                                <input type="text" id="input_name" value="Name" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="form-group row">
+                            <label for="inputEmail3" class="col-sm-2 col-form-label">Farbe:</label>
+                            <div class="col-sm-10">
+                                <select class="form-control" id="select_color" style="width:60px">
+                                    <option style="background-color:green;" value="green"></option>
+                                    <option style="background-color:red;" value="red"></option>
+                                    <option style="background-color:blue;" value="blue"></option>
+                                    <option style="background-color:gold;" value="gold"></option>
+                                    <option style="background-color:yellow;" value="yellow"></option>
+                                    <option style="background-color:silver;" value="silver"></option>
+                                    <option style="background-color:purple;" value="purple"></option>
+                                    <option style="background-color:turquoise;" value="turquoise"></option>
+                                    <option style="background-color:RosyBrown;" value="RosyBrown"></option>
+                                    <option style="background-color:#ff7f24;" value="#ff7f24"></option>
+                                    <option style="background-color:#8b4513;" value="#8b4513"></option>
+                                    <option style="background-color:DarkSlateGray;" value="DarkSlateGray"></option>
+                                    <option style="background-color:MediumSpringGreen;" value="MediumSpringGreen"></option>
+                                    <option style="background-color:#008b45;" value="#008b45"></option>
+                                    <option style="background-color:orange;" value="orange"></option>
+                                    <option style="background-color:DeepPink;" value="DeepPink"></option>
+                                    <option style="background-color:#ee6363;" value="#ee6363"></option>
+                                    <option style="background-color:NavajoWhite;" value="NavajoWhite"></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btn_setplayer" data-dismiss="modal">Save changes</button>
+                </div>
             </div>
         </div>
     </div>

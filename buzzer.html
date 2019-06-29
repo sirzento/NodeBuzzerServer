@@ -77,13 +77,13 @@
                 $("#question").text("");
             });
             socket.on('new game', function (msg) {
-                location.reload(); 
+                location.reload();
             });
             socket.on('update ranking', function (msg) {
                 $("#ranking").text("");
 
                 $(msg).each(function (index, item) {
-                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + "</td><td>" + item.Color + "</td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
+                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + ".</td><td style='width:10px' class='align-middle'><div style='background-color:" + item.Color + ";width: 10px; height: 10px;'></div></td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
                 })
             });
         });
@@ -98,8 +98,8 @@
         }
     </style>
 </head>
-<body style="background-color:lightgray">
-    <div class="container" style="border:solid 1px black">
+<body>
+    <div class="container">
         <div class="row d-flex justify-content-center">
             <p class="h1">Guerilla Gaming Buzzer</p>
         </div>
@@ -107,25 +107,34 @@
         <br />
         <br />
         <div class="row d-flex justify-content-center">
-            <div id="question_field" class="col-md-5" style="border: solid 1px black; height:100px">
+            <div id="question_field" class="col-md-5" style="border: solid 1px #cfcfcf; height:100px;border-radius: 7px;">
                 <p id="question"></p>
             </div>
         </div>
-        <div class="row d-flex justify-content-center">
-            <table class="table">
-                <thead></thead>
-                <tbody id="ranking"></tbody>
-            </table>
-        </div>
-        <div class="row d-flex justify-content-center">
+        <br />
+        <br />
+        <!--<div class="row d-flex justify-content-center">
             <p class="h2" id="name"></p>
+        </div>-->
+        <div class="text-center row">
+            <div class="col-sm-3">
+                <table class="table">
+                    <thead></thead>
+                    <tbody id="ranking"></tbody>
+                </table>
+            </div>
+            <div class="col-sm-6">
+                <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey;border-radius: 50px;margin:auto" />
+            </div>
         </div>
-        <div class="row d-flex justify-content-center">
-            <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey" />
-        </div>
-        <div class="row d-flex justify-content-center">
-            <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" />
-            <div id="option_area" style="display:none">
+        <br />
+        <br />
+        <hr />
+        <div class="row">
+            <div>
+                <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" style="margin-left:15px" />
+            </div>
+            <div id="option_area" style="display:none; margin-left:15px">
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
                     <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzer abspielen.</label>
@@ -136,15 +145,14 @@
                 </div>
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="paint_buzzer_border" checked="checked">
-                    <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umfärben beim Buzzern.</label>
+                    <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umf&auml;rben beim Buzzern.</label>
                 </div>
             </div>
         </div>
     </div>
 
 
-    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" style="visibility:collapse" id="show_modal">
-    </button>
+    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" style="visibility:collapse" id="show_modal"></button>
     <!-- Modal -->
     <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">

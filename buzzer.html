@@ -25,6 +25,16 @@
                 }
             });
 
+            socket.on('load soundfiles', function (msg) {
+                $(msg).each(function (index, item) {
+                    $("#input_success_sound").append("<option value='" + item + "'>" + item + "</option>");
+                    $("#input_failed_sound").append("<option value='" + item + "'>" + item + "</option>");
+
+                    $('#input_success_sound option[value="Player_Change_4.mp3"]').prop('selected', true)
+                    $('#input_failed_sound option[value="Negative_Dongs_5.mp3"]').prop('selected', true)
+                })
+            });
+
             $('#buzzer').click(function () {
                 if (name != "" && color != "") {
                     socket.emit('buzzer press', "");
@@ -60,13 +70,15 @@
             });
             socket.on('successful pressed', function (msg) {
                 if (document.getElementById('success_sound').checked) {
-                    var audio = new Audio('./sounds/Player_Change_4.mp3');
+                    var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                    audio.volume = $("#success_range").val() / 100;
                     audio.play();
                 }
             });
             socket.on('failed pressed', function (msg) {
                 if (document.getElementById('failed_sound').checked) {
-                    var audio = new Audio('./sounds/Negative_Dongs_5.mp3');
+                    var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                    audio.volume = $("#failed_range").val() / 100;
                     audio.play();
                 }
             });
@@ -86,6 +98,41 @@
                     $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + ".</td><td style='width:10px' class='align-middle'><div style='background-color:" + item.Color + ";width: 10px; height: 10px;'></div></td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
                 })
             });
+            $("#select_color").ready(function () {
+                var color = $("option:selected", this).css("background-color");
+                $("#select_color").css("background-color", color);
+            });
+
+            $("#select_color").change(function () {
+                var color = $("option:selected", this).css("background-color");
+                $("#select_color").css("background-color", color);
+            });
+
+            $(window).keypress(function (e) {
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    $("#buzzer").click();
+                }
+            });
+
+            $("#btn_play_success").click(function () {
+                var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                audio.volume = $("#success_range").val() / 100;
+                audio.play();
+            });
+
+            $("#btn_play_failed").click(function () {
+                var audio = new Audio('./sounds/' + $("#input_failed_sound").val());
+                audio.volume = $("#failed_range").val() / 100;
+                audio.play();
+            });
+
+            $('#failed_sound').change(function () {
+                $('#sound_failed_area').toggle(this.checked);
+            }).change()
+
+            $('#success_sound').change(function () {
+                $('#sound_success_area').toggle(this.checked);
+            }).change()
         });
     </script>
     <style>
@@ -135,14 +182,30 @@
                 <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" style="margin-left:15px" />
             </div>
             <div id="option_area" style="display:none; margin-left:15px">
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
-                    <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzer abspielen.</label>
+                <div>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
+                        <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzen abspielen.</label>
+                    </div>
+                    <div id="sound_success_area">
+                        <select class="form-control" id="input_success_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
+                        <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_success" />
+                        <input type="range" class="custom-range" id="success_range">
+                    </div>
                 </div>
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="failed_sound" checked="checked">
-                    <label class="custom-control-label" for="failed_sound">Sound wenn jemand anderes Buzzert abspielen.</label>
+                <br />
+                <div>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="failed_sound" checked="checked">
+                        <label class="custom-control-label" for="failed_sound">Sound wenn jemand anderes Buzzert abspielen.</label>
+                    </div>
+                    <div id="sound_failed_area">
+                        <select class="form-control" id="input_failed_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
+                        <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_failed" />
+                        <input type="range" class="custom-range" id="failed_range">
+                    </div>
                 </div>
+                <br />
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="paint_buzzer_border" checked="checked">
                     <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umf&auml;rben beim Buzzern.</label>
@@ -154,18 +217,18 @@
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" style="visibility:collapse" id="show_modal"></button>
     <!-- Modal -->
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+                    <h5 class="modal-title" id="exampleModalLongTitle">Neuer Spieler</h5>
                 </div>
                 <div class="modal-body">
                     <div id="player_area">
                         <div class="form-group row">
                             <label for="inputEmail3" class="col-sm-2 col-form-label">Name:</label>
                             <div class="col-sm-10">
-                                <input type="text" id="input_name" value="Name" class="form-control" />
+                                <input type="text" id="input_name" value="" class="form-control" />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -196,7 +259,7 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="btn_setplayer" data-dismiss="modal">Save changes</button>
+                    <button type="button" class="btn btn-primary" id="btn_setplayer" data-dismiss="modal">Speichern</button>
                 </div>
             </div>
         </div>

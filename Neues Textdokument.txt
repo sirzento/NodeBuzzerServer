@@ -1,6 +1,15 @@
- => Einstellungen
- - Namen anzeigen beim drücken An/Aus
- - Ton beim Erfolgreichen drücken An/Aus (Selber Ton/ bei anderen)
+High: 
+ => Login für Admin einrichten
+
+Medium:
+ => Subdomaine einrichten (buzzer.guerillagaming.eu & buzzer.guerillagaming.eu/admin)
+ => Https only einrichten.
+ => Daten in cookies speichern
+
+Low:
  => Timer nach klicken?
- => Punkteanzeige / Leaderboard (Farbe | Name | Punkte) (Rahmen bei Erfolgreich)
- => Color picker / dropdown menu
+ => Buzzer Styles
+ => Mehr Sounds
+
+
+

@@ -8,6 +8,7 @@ var BuzzerStatus = true;
 var Playerlist = [];
 var CurrentPress = new Object();
 var CurrentQuestion = "";
+var SoundFiles = LoadSoundfiles();
 
 //Weiterleitung zur Buzzer Page
 app.get('/buzzer', function (req, res) {
@@ -17,6 +18,11 @@ app.get('/buzzer', function (req, res) {
 //Weiterleitung zur Admin Page
 app.get('/admin', function (req, res) {
     res.sendFile(__dirname + '/buzzer_admin.html');
+});
+
+//Weiterleitung zur Hauptwebseite
+app.get('/', function (req, res) {
+    res.sendFile(__dirname + '/GuerillaGamingWebseite/index.html');
 });
 
 
@@ -32,13 +38,14 @@ io.on('connection', function (socket) {
     socket.emit('update ranking', Playerlist);
     socket.emit('load buzzer', CurrentPress);
     socket.emit('set question', CurrentQuestion);
+    socket.emit('load soundfiles', SoundFiles);
 
     //Logik wenn der Buzzer gedrückt worden ist
     socket.on('buzzer press', function (msg) {
         if (BuzzerStatus == true) {
             BuzzerStatus = false;
             CurrentPress = Playerlist.find(function (element) { return element.SocketID == socket.id });
-            console.log(CurrentPress.Name);
+            console.log(CurrentPress.Name + " pressed the Buzzer");
             //Nachricht an den Spieler, der Erfolgreich gedrückt hat
             socket.emit('successful pressed', "");
             //Nachricht an ale anderen das jemand gedrückt hat
@@ -92,7 +99,7 @@ io.on('connection', function (socket) {
     //Logik falls ein Spieler die Seite verlässt
     socket.on('disconnect', function () {
         if (Playerlist.find(function (element) { return element.SocketID == socket.id }) != null) {
-            console.log('User ' + Playerlist.find(function (element) { return element.SocketID == socket.id }).Name + ' disconnected. [' + socket.id + ']');
+            console.log('Player ' + Playerlist.find(function (element) { return element.SocketID == socket.id }).Name + ' disconnected. [' + socket.id + ']');
             Playerlist = Playerlist.filter(function (obj) {
                 return obj.SocketID != socket.id;
             });
@@ -123,6 +130,18 @@ function NewPlayer(name, color, socketID) {
     return player;
 }
 
+function LoadSoundfiles() {
+    const soundFolder = './sounds/';
+    const fs = require('fs');
+    var soundArray = [];
+
+    fs.readdirSync(soundFolder).forEach(file => {
+        soundArray.push(file);
+    });
+
+    return soundArray;
+}
+
 //Sortiert die Spielerliste/Rangliste nach Punkten und sendet sie zu allen Clienten/Spieler
 function UpdateRanking() {
     Playerlist.sort((a, b) => (a.Points < b.Points) ? 1 : ((b.Points < a.Points) ? -1 : 0));
@@ -137,18 +156,24 @@ function UpdateRanking() {
 //// Load Resource Files
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-app.get('/sounds/Game_Over_Robot_Hit_8.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Game_Over_Robot_Hit_8.mp3');
+//Hauptseiten resourcen
+app.use(require('express').static(__dirname + '/GuerillaGamingWebseite/'));
+
+//Sound resourcen
+app.use(require('express').static(__dirname + '/sounds/'));
+
+app.get('/sounds/Rdm_Robot_Hit_8.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/Rdm_Robot_Hit_8.mp3');
 });
 
-app.get('/sounds/Negative_Dongs_5.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Negative_Dongs_5.mp3');
+app.get('/sounds/Rdm_Negative_Dongs_5.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/Rdm_Negative_Dongs_5.mp3');
 });
 
-app.get('/sounds/Negative_Hit_Wrong_Ball.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Negative_Hit_Wrong_Ball.mp3');
+app.get('/sounds/Rdm_Negative_Hit_Wrong_Ball.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/Rdm_Negative_Hit_Wrong_Ball.mp3');
 });
 
-app.get('/sounds/Player_Change_4.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Player_Change_4.mp3');
+app.get('/sounds/Rdm_Player_Change_4.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/Rdm_Player_Change_4.mp3');
 });

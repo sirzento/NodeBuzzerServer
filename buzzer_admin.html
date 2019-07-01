@@ -41,7 +41,7 @@
                 socket.emit('add points', $("#input_points").val());
             });
             $('#btn_new_game').click(function () {
-                if (confirm("Alle Daten werden gelöscht")) {
+                if (confirm("Alle Daten werden gel&ouml;scht")) {
                     socket.emit('new game', "");
                 }
             });

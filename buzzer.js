@@ -162,18 +162,42 @@ app.use(require('express').static(__dirname + '/GuerillaGamingWebseite/'));
 //Sound resourcen
 app.use(require('express').static(__dirname + '/sounds/'));
 
-app.get('/sounds/Rdm_Robot_Hit_8.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Rdm_Robot_Hit_8.mp3');
+app.get('/sounds/RDM_Robot_Hit_8.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Robot_Hit_8.mp3');
 });
 
-app.get('/sounds/Rdm_Negative_Dongs_5.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Rdm_Negative_Dongs_5.mp3');
+app.get('/sounds/RDM_Negative_Dongs_5.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Negative_Dongs_5.mp3');
 });
 
-app.get('/sounds/Rdm_Negative_Hit_Wrong_Ball.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Rdm_Negative_Hit_Wrong_Ball.mp3');
+app.get('/sounds/RDM_Negative_Hit_Wrong_Ball.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Negative_Hit_Wrong_Ball.mp3');
 });
 
-app.get('/sounds/Rdm_Player_Change_4.mp3', function (req, res) {
-    res.sendFile(__dirname + '/sounds/Rdm_Player_Change_4.mp3');
+app.get('/sounds/RDM_tv-total.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_tv-total.mp3');
+});
+app.get('/sounds/SMW_1-up.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_1-up.wav');
+});
+app.get('/sounds/SMW_coin.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_coin.wav');
+});
+app.get('/sounds/SMW_fireball.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_fireball.wav');
+});
+app.get('/sounds/SMW_kick.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_kick.wav');
+});
+app.get('/sounds/SMW_power-up.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_power-up.wav');
+});
+app.get('/sounds/SMW_save_menu.wav', function (req, res) {
+    res.sendFile(__dirname + '/sounds/SMW_save_menu.wav');
+});
+app.get('/sounds/RDM_Sonic_Ring.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Sonic_Ring.mp3');
+});
+app.get('/sounds/RDM_Metal_Gear.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Metal_Gear.mp3');
 });

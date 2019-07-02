@@ -42,16 +42,19 @@ io.on('connection', function (socket) {
 
     //Logik wenn der Buzzer gedrückt worden ist
     socket.on('buzzer press', function (msg) {
-        if (BuzzerStatus == true) {
-            BuzzerStatus = false;
-            CurrentPress = Playerlist.find(function (element) { return element.SocketID == socket.id });
-            console.log(CurrentPress.Name + " pressed the Buzzer");
-            //Nachricht an den Spieler, der Erfolgreich gedrückt hat
-            socket.emit('successful pressed', "");
-            //Nachricht an ale anderen das jemand gedrückt hat
-            socket.broadcast.emit('failed pressed', "");
-            //Schickt Info des Spielers der erfolgreich gedrückt hat an alle Spieler
-            io.emit('buzzer press', CurrentPress);
+        var tempPress = Playerlist.find(function (element) { return element.SocketID == socket.id });
+        if (tempPress != null) {
+            if (BuzzerStatus == true) {
+                BuzzerStatus = false;
+                CurrentPress = tempPress;
+                console.log(CurrentPress.Name + " pressed the Buzzer");
+                //Nachricht an den Spieler, der Erfolgreich gedrückt hat
+                socket.emit('successful pressed', "");
+                //Nachricht an ale anderen das jemand gedrückt hat
+                socket.broadcast.emit('failed pressed', "");
+                //Schickt Info des Spielers der erfolgreich gedrückt hat an alle Spieler
+                io.emit('buzzer press', CurrentPress);
+            }
         }
     });
 
@@ -130,6 +133,7 @@ function NewPlayer(name, color, socketID) {
     return player;
 }
 
+//Generiert eine Liste mit allen Sound Daten
 function LoadSoundfiles() {
     const soundFolder = './sounds/';
     const fs = require('fs');

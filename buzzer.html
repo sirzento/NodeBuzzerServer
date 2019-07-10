@@ -45,13 +45,23 @@
                 $("#option_area").toggle();
             });
             $('#btn_setplayer').click(function () {
-                if ($("#input_color").val() != "" && $("#input_name").val()) {
-                    color = $("#select_color").val();
-                    name = $("#input_name").val();
-                    $("#player_area").css('visibility', 'hidden');
-                    $("#buzzer").css('background-color', color);
-                    $("#name").text(name);
-                    socket.emit('new player', name + ";" + color);
+                if ($("#input_color").val() != "" && $("#input_name").val() != "" && $("#input_code").val() != "") {
+                    socket.emit('check code', $("#input_code").val());
+                    socket.on('check code', function (data) {
+                        if (data) {
+                            alert("Code gefunden.");
+                            $('#exampleModalCenter').modal('hide');
+                            socket.emit('ini buzzer', "");
+                            color = $("#select_color").val();
+                            name = $("#input_name").val();
+                            $("#player_area").css('visibility', 'hidden');
+                            $("#buzzer").css('background-color', color);
+                            $("#name").text(name);
+                            socket.emit('new player', name + ";" + color);
+                        } else {
+                            alert("Code nicht vorhanden.");
+                        }
+                    });
                 }
             });
             socket.on('buzzer press', function (msg) {
@@ -228,7 +238,7 @@
                         <div class="form-group row">
                             <label for="inputEmail3" class="col-sm-2 col-form-label">Name:</label>
                             <div class="col-sm-10">
-                                <input type="text" id="input_name" value="" class="form-control" />
+                                <input type="text" id="input_name" value="" class="form-control" placeholder="Name" />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -257,9 +267,16 @@
                             </div>
                         </div>
                     </div>
+                    <hr />
+                    <div class="form-group row">
+                        <label for="inputEmail3" class="col-sm-2 col-form-label">Code:</label>
+                        <div class="col-sm-10">
+                            <input type="text" id="input_code" value="" class="form-control" placeholder="Code" />
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="btn_setplayer" data-dismiss="modal">Speichern</button>
+                    <button type="button" class="btn btn-primary" id="btn_setplayer">Speichern</button>
                 </div>
             </div>
         </div>

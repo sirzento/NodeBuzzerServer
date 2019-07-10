@@ -1,10 +1,11 @@
 High: 
- => Login für Admin einrichten
+ => Eigene Räume + Pw
 
 Medium:
  => Subdomaine einrichten (buzzer.guerillagaming.eu & buzzer.guerillagaming.eu/admin)
  => Https only einrichten.
  => Daten in cookies speichern
+ => Feld für Schätzfragen einrichten
 
 Low:
  => Timer nach klicken?

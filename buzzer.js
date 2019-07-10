@@ -1,14 +1,31 @@
 //Lädt Abhängigkeiten.
+const bodyParser = require('body-parser');
 var app = require('express')();
+var session = require("express-session")({
+    secret: "my-secret",
+    resave: true,
+    saveUninitialized: true
+});
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
+var sharedsession = require("express-socket.io-session");
+app.use(session);
+io.use(sharedsession(session));
 
 //Globale Variable
+var GameList = [];
 var BuzzerStatus = true;
 var Playerlist = [];
 var CurrentPress = new Object();
 var CurrentQuestion = "";
 var SoundFiles = LoadSoundfiles();
+
+//Weiterleitung zur Startseite
+app.get('/home', function (req, res) {
+    res.sendFile(__dirname + '/start.html');
+});
 
 //Weiterleitung zur Buzzer Page
 app.get('/buzzer', function (req, res) {
@@ -22,7 +39,7 @@ app.get('/admin', function (req, res) {
 
 //Weiterleitung zur Hauptwebseite
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + '/GuerillaGamingWebseite/index.html');
+    //res.sendFile(__dirname + '/GuerillaGamingWebseite/index.html');
 });
 
 
@@ -35,14 +52,24 @@ app.get('/', function (req, res) {
 io.on('connection', function (socket) {
 
     //Schickt beim erstmaligen laden der Seite die Info des Spieler, der aktuell gedrückt hat, falls vorhanden
-    socket.emit('update ranking', Playerlist);
-    socket.emit('load buzzer', CurrentPress);
-    socket.emit('set question', CurrentQuestion);
-    socket.emit('load soundfiles', SoundFiles);
+    socket.on('ini buzzer', function (msg) {
+        socket.emit('update ranking', Playerlist);
+        socket.emit('load buzzer', CurrentPress);
+        socket.emit('set question', CurrentQuestion);
+        socket.emit('load soundfiles', SoundFiles);
+    });
+
+    //Prüft ob es ein Raum mit dem Code gibt
+    socket.on('check code', function (msg) {
+        //TODO
+        io.sockets.emit('check code', false);
+    });
+    
+    socket.handshake.session.Test = "HALLO";
 
     //Logik wenn der Buzzer gedrückt worden ist
     socket.on('buzzer press', function (msg) {
-        var tempPress = Playerlist.find(function (element) { return element.SocketID == socket.id });
+        var tempPress = Playerlist.find(function (element) { return element.SocketID == socket.id; });
         if (tempPress != null) {
             if (BuzzerStatus == true) {
                 BuzzerStatus = false;
@@ -88,7 +115,7 @@ io.on('connection', function (socket) {
 
     //fügt Punkte zum aktuellem Clienten hinzu
     socket.on('add points', function (msg) {
-        Playerlist.find(function (element) { return element.SocketID == CurrentPress.SocketID }).Points += parseInt(msg);
+        Playerlist.find(function (element) { return element.SocketID == CurrentPress.SocketID; }).Points += parseInt(msg);
         UpdateRanking();
     });
 
@@ -101,8 +128,8 @@ io.on('connection', function (socket) {
 
     //Logik falls ein Spieler die Seite verlässt
     socket.on('disconnect', function () {
-        if (Playerlist.find(function (element) { return element.SocketID == socket.id }) != null) {
-            console.log('Player ' + Playerlist.find(function (element) { return element.SocketID == socket.id }).Name + ' disconnected. [' + socket.id + ']');
+        if (Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
+            console.log('Player ' + Playerlist.find(function (element) { return element.SocketID == socket.id; }).Name + ' disconnected. [' + socket.id + ']');
             Playerlist = Playerlist.filter(function (obj) {
                 return obj.SocketID != socket.id;
             });
@@ -115,7 +142,6 @@ io.on('connection', function (socket) {
 http.listen(3000, function () {
     console.log('listening on *:3000');
 });
-
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //Functions
@@ -153,6 +179,16 @@ function UpdateRanking() {
     if (JSON.stringify(CurrentPress) != JSON.stringify(new Object())) {
         io.emit('buzzer press', CurrentPress);
     }
+}
+
+//Erstellt ein neuen Raum/Buzzer
+function NewBuzzer(code, pass) {
+    var game = {};
+    game.Code = code;
+    game.Pass = pass;
+    game.Players = 1;
+
+    return game;
 }
 
 

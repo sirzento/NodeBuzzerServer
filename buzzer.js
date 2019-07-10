@@ -148,12 +148,14 @@ io.on('connection', function (socket) {
 
     //Logik falls ein Spieler die Seite verlässt
     socket.on('disconnect', function () {
-        if (GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
-            console.log('Player ' + GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }).Name + ' disconnected. [' + socket.id + ']');
-            GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.filter(function (obj) {
-                return obj.SocketID != socket.id;
-            });
-            UpdateRanking(socket);
+        if (GameList.find(x => x.Code === socket.handshake.session.Room) != null) {
+            if (GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
+                console.log('Player ' + GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }).Name + ' disconnected. [' + socket.id + ']');
+                GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.filter(function (obj) {
+                    return obj.SocketID != socket.id;
+                });
+                UpdateRanking(socket);
+            }
         }
     });
 });

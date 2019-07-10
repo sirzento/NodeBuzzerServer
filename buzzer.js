@@ -16,10 +16,6 @@ io.use(sharedsession(session));
 
 //Globale Variable
 var GameList = [];
-var BuzzerStatus = true;
-var Playerlist = [];
-var CurrentPress = new Object();
-var CurrentQuestion = "";
 var SoundFiles = LoadSoundfiles();
 
 //Weiterleitung zur Startseite
@@ -53,87 +49,111 @@ io.on('connection', function (socket) {
 
     //Schickt beim erstmaligen laden der Seite die Info des Spieler, der aktuell gedrückt hat, falls vorhanden
     socket.on('ini buzzer', function (msg) {
-        socket.emit('update ranking', Playerlist);
-        socket.emit('load buzzer', CurrentPress);
-        socket.emit('set question', CurrentQuestion);
+        socket.emit('update ranking', GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist);
+        socket.emit('load buzzer', GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress);
+        socket.emit('set question', GameList.find(x => x.Code === socket.handshake.session.Room).CurrentQuestion);
         socket.emit('load soundfiles', SoundFiles);
     });
 
     //Prüft ob es ein Raum mit dem Code gibt
     socket.on('check code', function (msg) {
-        //TODO
-        io.sockets.emit('check code', false);
+        var exists = GameList.find(x => x.Code === msg) != null;
+        if (exists) {
+            socket.join(msg);
+            socket.handshake.session.Room = msg;
+        }
+        socket.emit('check code', exists);
+    });
+
+    //Erstellt einen Neuen Raum
+    socket.on('admin create', function (data) {
+        var notExists = GameList.find(x => x.Code === data.split(";")[0]) == null;
+        if (notExists) {
+            GameList.push(NewBuzzer(data.split(";")[0], data.split(";")[1]));
+            socket.join(data.split(";")[0]);
+            socket.handshake.session.Room = data.split(";")[0];
+        }
+        socket.emit('admin create', notExists);
+    });
+
+    //Logt sich in einem Raum ein
+    socket.on('admin login', function (data) {
+        var existsAndValid = GameList.find(x => x.Code === data.split(";")[0] && x.Pass === data.split(";")[1]) != null;
+        if (existsAndValid) {
+            socket.join(data.split(";")[0]);
+            socket.handshake.session.Room = data.split(";")[0];
+        }
+        socket.emit('admin login', existsAndValid);
     });
     
-    socket.handshake.session.Test = "HALLO";
 
     //Logik wenn der Buzzer gedrückt worden ist
     socket.on('buzzer press', function (msg) {
-        var tempPress = Playerlist.find(function (element) { return element.SocketID == socket.id; });
+        var tempPress = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; });
         if (tempPress != null) {
-            if (BuzzerStatus == true) {
-                BuzzerStatus = false;
-                CurrentPress = tempPress;
-                console.log(CurrentPress.Name + " pressed the Buzzer");
+            if (GameList.find(x => x.Code === socket.handshake.session.Room).BuzzerInfo == true) {
+                GameList.find(x => x.Code === socket.handshake.session.Room).BuzzerInfo = false;
+                GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress = tempPress;
+                console.log(GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress.Name + " pressed the Buzzer");
                 //Nachricht an den Spieler, der Erfolgreich gedrückt hat
                 socket.emit('successful pressed', "");
                 //Nachricht an ale anderen das jemand gedrückt hat
-                socket.broadcast.emit('failed pressed', "");
+                socket.to(socket.handshake.session.Room).emit('failed pressed', "");
                 //Schickt Info des Spielers der erfolgreich gedrückt hat an alle Spieler
-                io.emit('buzzer press', CurrentPress);
+                io.in(socket.handshake.session.Room).emit('buzzer press', GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress);
             }
         }
     });
 
     //Schaltet den Buzzer wieder frei
     socket.on('buzzer unlocked', function (msg) {
-        BuzzerStatus = true;
-        io.emit('buzzer unlocked', CurrentPress);
-        CurrentPress = new Object();
+        GameList.find(x => x.Code === socket.handshake.session.Room).BuzzerInfo = true;
+        io.in(socket.handshake.session.Room).emit('buzzer unlocked', GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress);
+        GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress = new Object();
     });
 
     //Löscht die aktuelle frage
     socket.on('clear question', function (msg) {
-        CurrentQuestion = "";
-        io.emit('clear question', "");
+        GameList.find(x => x.Code === socket.handshake.session.Room).CurrentQuestion = "";
+        io.in(socket.handshake.session.Room).emit('clear question', "");
     });
 
     //Sendet eine neue Frage zu den Clienten
     socket.on('send question', function (msg) {
-        CurrentQuestion = msg;
-        io.emit('set question', msg);
+        GameList.find(x => x.Code === socket.handshake.session.Room).CurrentQuestion = msg;
+        io.in(socket.handshake.session.Room).emit('set question', msg);
     });
 
     //Startet ein neues Spiel
     socket.on('new game', function (msg) {
-        BuzzerStatus = true;
-        Playerlist = [];
-        CurrentPress = new Object();
-        CurrentQuestion = "";
-        io.emit('new game', msg);
+        GameList.find(x => x.Code === socket.handshake.session.Room).BuzzerInfo = true;
+        GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist = [];
+        GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress = new Object();
+        GameList.find(x => x.Code === socket.handshake.session.Room).CurrentQuestion = "";
+        io.in(socket.handshake.session.Room).emit('new game', msg);
     });
 
-    //fügt Punkte zum aktuellem Clienten hinzu
+    //Fügt Punkte zum aktuellem Clienten hinzu
     socket.on('add points', function (msg) {
-        Playerlist.find(function (element) { return element.SocketID == CurrentPress.SocketID; }).Points += parseInt(msg);
-        UpdateRanking();
+        GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress.SocketID; }).Points += parseInt(msg);
+        UpdateRanking(socket);
     });
 
     //Logik wenn ein neue Spieler sich einträgt
     socket.on('new player', function (msg) {
-        Playerlist.push(NewPlayer(msg.split(";")[0], msg.split(";")[1], socket.id));
+        GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.push(NewPlayer(msg.split(";")[0], msg.split(";")[1], socket.id));
         console.log("Player " + msg.split(";")[0] + " joint the game. [" + socket.id + "]");
-        UpdateRanking();
+        UpdateRanking(socket);
     });
 
     //Logik falls ein Spieler die Seite verlässt
     socket.on('disconnect', function () {
-        if (Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
-            console.log('Player ' + Playerlist.find(function (element) { return element.SocketID == socket.id; }).Name + ' disconnected. [' + socket.id + ']');
-            Playerlist = Playerlist.filter(function (obj) {
+        if (GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
+            console.log('Player ' + GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }).Name + ' disconnected. [' + socket.id + ']');
+            GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.filter(function (obj) {
                 return obj.SocketID != socket.id;
             });
-            UpdateRanking();
+            UpdateRanking(socket);
         }
     });
 });
@@ -173,11 +193,11 @@ function LoadSoundfiles() {
 }
 
 //Sortiert die Spielerliste/Rangliste nach Punkten und sendet sie zu allen Clienten/Spieler
-function UpdateRanking() {
-    Playerlist.sort((a, b) => (a.Points < b.Points) ? 1 : ((b.Points < a.Points) ? -1 : 0));
-    io.emit('update ranking', Playerlist);
-    if (JSON.stringify(CurrentPress) != JSON.stringify(new Object())) {
-        io.emit('buzzer press', CurrentPress);
+function UpdateRanking(socket) {
+    GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.sort((a, b) => (a.Points < b.Points) ? 1 : ((b.Points < a.Points) ? -1 : 0));
+    io.in(socket.handshake.session.Room).emit('update ranking', GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist);
+    if (JSON.stringify(GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress) != JSON.stringify(new Object())) {
+        io.in(socket.handshake.session.Room).emit('buzzer press', GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress);
     }
 }
 
@@ -187,6 +207,10 @@ function NewBuzzer(code, pass) {
     game.Code = code;
     game.Pass = pass;
     game.Players = 1;
+    game.BuzzerInfo = true;
+    game.Playerlist = [];
+    game.CurrentPress = new Object();
+    game.CurrentQuestion = "";
 
     return game;
 }

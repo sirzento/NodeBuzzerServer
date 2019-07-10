@@ -49,7 +49,6 @@
                     socket.emit('check code', $("#input_code").val());
                     socket.on('check code', function (data) {
                         if (data) {
-                            alert("Code gefunden.");
                             $('#exampleModalCenter').modal('hide');
                             socket.emit('ini buzzer', "");
                             color = $("#select_color").val();

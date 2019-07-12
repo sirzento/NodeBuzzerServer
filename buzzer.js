@@ -236,6 +236,10 @@ app.get('/sounds/RDM_Negative_Dongs_5.mp3', function (req, res) {
     res.sendFile(__dirname + '/sounds/RDM_Negative_Dongs_5.mp3');
 });
 
+app.get('/sounds/RDM_Player_Change_4.mp3', function (req, res) {
+    res.sendFile(__dirname + '/sounds/RDM_Player_Change_4.mp3');
+});
+
 app.get('/sounds/RDM_Negative_Hit_Wrong_Ball.mp3', function (req, res) {
     res.sendFile(__dirname + '/sounds/RDM_Negative_Hit_Wrong_Ball.mp3');
 });

@@ -86,7 +86,7 @@
             });
             socket.on('failed pressed', function (msg) {
                 if (document.getElementById('failed_sound').checked) {
-                    var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                    var audio = new Audio('./sounds/' + $("#input_failed_sound").val());
                     audio.volume = $("#failed_range").val() / 100;
                     audio.play();
                 }

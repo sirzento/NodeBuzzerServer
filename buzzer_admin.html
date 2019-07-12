@@ -67,6 +67,7 @@
             });
             $('#btn_send_question').click(function () {
                 socket.emit('send question', $("#input_new_question").val());
+                $("#input_new_question").text("");
             });
             $('#btn_add_points').click(function () {
                 socket.emit('add points', $("#input_points").val());
@@ -76,6 +77,14 @@
                     socket.emit('new game', "");
                 }
             });
+            $("#btn_play_success").click(function () {
+                var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                audio.volume = $("#success_range").val() / 100;
+                audio.play();
+            });
+            $('#success_sound').change(function () {
+                $('#sound_success_area').toggle(this.checked);
+            }).change()
             socket.on('buzzer press', function (msg) {
                 currentPlayer = msg;
                 $("#" + msg.SocketID).css('border', "solid 2px yellow");
@@ -91,7 +100,8 @@
             });
             socket.on('failed pressed', function (msg) {
                 if (document.getElementById('success_sound').checked) {
-                    var audio = new Audio('./sounds/Player_Change_4.mp3');
+                    var audio = new Audio('./sounds/' + $("#input_success_sound").val());
+                    audio.volume = $("#success_range").val() / 100;
                     audio.play();
                 }
             });
@@ -108,6 +118,12 @@
                 $("#ranking").text("");
                 $(msg).each(function (index, item) {
                     $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + ".</td><td style='width:10px' class='align-middle'><div style='background-color:" + item.Color + ";width: 10px; height: 10px;'></div></td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
+                })
+            });
+            socket.on('load soundfiles', function (msg) {
+                $(msg).each(function (index, item) {
+                    $("#input_success_sound").append("<option value='" + item + "'>" + item + "</option>");
+                    $('#input_success_sound option[value="RDM_Player_Change_4.mp3"]').prop('selected', true)
                 })
             });
         });
@@ -176,6 +192,11 @@
                 <div class="custom-control custom-checkbox">
                     <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
                     <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzer abspielen.</label>
+                </div>
+                <div id="sound_success_area">
+                    <select class="form-control" id="input_success_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
+                    <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_success" />
+                    <input type="range" class="custom-range" id="success_range">
                 </div>
             </div>
         </div>

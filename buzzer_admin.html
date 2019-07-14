@@ -67,7 +67,7 @@
             });
             $('#btn_send_question').click(function () {
                 socket.emit('send question', $("#input_new_question").val());
-                $("#input_new_question").text("");
+                $("#input_new_question").val("");
             });
             $('#btn_add_points').click(function () {
                 socket.emit('add points', $("#input_points").val());

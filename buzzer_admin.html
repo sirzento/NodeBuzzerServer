@@ -18,7 +18,7 @@
             var socket = io();
             socket.on('load buzzer', function (msg) {
                 if (JSON.stringify(msg) != JSON.stringify(new Object())) {
-                    $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                    $("#" + msg.SocketID).css('border', "solid 2px blue");
                     $("#buzzer").css("background-color", "red");
                     $("#buzzer").val("Gesperrt");
                 } else {
@@ -82,12 +82,17 @@
                 audio.volume = $("#success_range").val() / 100;
                 audio.play();
             });
+            $("#btn_send_link").click(function () {
+                if ($("#input_link").val() != "") {
+                    socket.emit('open link', $("#input_link").val());
+                }
+            });
             $('#success_sound').change(function () {
                 $('#sound_success_area').toggle(this.checked);
             }).change()
             socket.on('buzzer press', function (msg) {
                 currentPlayer = msg;
-                $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                $("#" + msg.SocketID).css('border', "solid 2px blue");
                 $("#buzzer").css("background-color", "red");
                 $("#buzzer").val("Gesperrt");
                 $("#points_area").css("display", "block");
@@ -112,12 +117,19 @@
                 $("#question").text("");
             });
             socket.on('new game', function (msg) {
-                location.reload(); 
+                socket.emit('ini buzzer', "");
             });
             socket.on('update ranking', function (msg) {
                 $("#ranking").text("");
                 $(msg).each(function (index, item) {
-                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + ".</td><td style='width:10px' class='align-middle'><div style='background-color:" + item.Color + ";width: 10px; height: 10px;'></div></td><td>" + item.Name + "</td><td>" + item.Points + " Pkt.</td></tr>");
+                    $("#ranking").append("<tr id='" + item.SocketID + "'><td>" + (index + 1) + ".</td><td style='width:10px' class='align-middle'><div style='background-color:" + item.Color + ";width: 10px; height: 10px;'></div></td><td>" + item.Name + "</td><td><input type='number' class='admin_points' data-id='" + item.SocketID +"' value='"+parseInt(item.Points)+"' style='width:33px; border:0'></input> Pkt.</td></tr>");
+                })
+                $(".admin_points").change(function () {
+                    var playerInfo = new Object();
+                    playerInfo.SocketID = $(this).data("id");
+                    playerInfo.Points = $(this).val();
+
+                    socket.emit('change points', playerInfo);
                 })
             });
             socket.on('load soundfiles', function (msg) {
@@ -126,6 +138,11 @@
                     $('#input_success_sound option[value="RDM_Player_Change_4.mp3"]').prop('selected', true)
                 })
             });
+            socket.on('show error', function (msg) {
+                alert("Es ist ein Fehler aufgetreten. Fehlercode: " + msg);
+            });
+
+            
         });
     </script>
     <style>
@@ -153,13 +170,21 @@
         </div>
         <br />
         <div class="row d-flex justify-content-center">
-            <input type="text" id="input_new_question" class="col-md-5" style="height:100px" />
+            <input type="text" id="input_new_question" class="col-md-5" style="height:100px" placeholder="Schreibe hier deine Frage" />
+        </div>
+        <br />
+        <div class="row d-flex justify-content-center">
+            <div class="col-md-4">
+                <input type="text" id="input_link" class="form-control" placeholder="Link" />
+            </div>
+            <input type="button" id="btn_send_link" class="btn btn-primary" value="Senden" />
         </div>
         <br />
         <div class="row d-flex justify-content-center">
             <input type="button" id="btn_send_question" value="Frage senden" class="btn btn-success" style="margin-right:15px" />
             <input type="button" id="btn_clear_question" value="Frage l&ouml;schen" class="btn btn-danger" />
         </div>
+
         <br />
         <br />
         <div class="row d-flex justify-content-center">
@@ -168,7 +193,7 @@
         <br />
         <br />
         <div class="row d-flex justify-content-center">
-            <table class="table col-sm-3">
+            <table class="table col-lg-3">
                 <thead></thead>
                 <tbody id="ranking"></tbody>
             </table>
@@ -186,7 +211,7 @@
         <div class="row">
             <div style="margin-left:15px">
                 <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" />
-                <input type="button" class="btn btn-danger" value="Neus Spiel" id="btn_new_game" />
+                <input type="button" class="btn btn-danger" value="Neues Spiel" id="btn_new_game" />
             </div>
             <div id="option_area" style="display:none; margin-left:15px">
                 <div class="custom-control custom-checkbox">
@@ -227,8 +252,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary" id="btn_login">Login</button>
                     <button type="button" class="btn btn-success" id="btn_create">Erstellen</button>
+                    <button type="button" class="btn btn-primary" id="btn_login">Login</button>
                 </div>
             </div>
         </div>

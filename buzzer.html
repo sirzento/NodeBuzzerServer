@@ -6,6 +6,7 @@
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@2/src/js.cookie.min.js"></script>
     <!--<script src="./js/bootstrap.js" type="text/javascript"></script>
     <link href="./css/bootstrap.css" type="text/css">-->
     <script>
@@ -14,13 +15,14 @@
 
         $(function () {
             $("#show_modal").click();
+            LoadCookies();
             var socket = io();
             socket.on('load buzzer', function (msg) {
                 if (JSON.stringify(msg) != JSON.stringify(new Object())) {
                     if (document.getElementById('paint_buzzer_border').checked) {
                         $("#buzzer").css('border-color', msg.Color);
                     }
-                    $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                    $("#" + msg.SocketID).css('border', "solid 2px blue");
                     $("#buzzer").prop("disabled", true);
                 }
             });
@@ -30,8 +32,17 @@
                     $("#input_success_sound").append("<option value='" + item + "'>" + item + "</option>");
                     $("#input_failed_sound").append("<option value='" + item + "'>" + item + "</option>");
 
-                    $('#input_success_sound option[value="RDM_Player_Change_4.mp3"]').prop('selected', true)
-                    $('#input_failed_sound option[value="RDM_Negative_Dongs_5.mp3"]').prop('selected', true)
+                    if (Cookies.get("success_sound_track") != undefined) {
+                        $('#input_success_sound option[value="' + Cookies.get("success_sound_track") + '"]').prop('selected', true)
+                    } else {
+                        $('#input_success_sound option[value="RDM_Player_Change_4.mp3"]').prop('selected', true)
+                    }
+
+                    if (Cookies.get("fail_sound_track") != undefined) {
+                        $('#input_failed_sound option[value="' + Cookies.get("fail_sound_track") + '"]').prop('selected', true)
+                    } else {
+                        $('#input_failed_sound option[value="RDM_Negative_Dongs_5.mp3"]').prop('selected', true)
+                    }
                 })
             });
 
@@ -41,8 +52,8 @@
                     return false;
                 }
             });
-            $('#btn_options').click(function () {
-                $("#option_area").toggle();
+            $('#btn_test_popup').click(function () {
+                window.open("http://www.google.de");
             });
             $('#btn_setplayer').click(function () {
                 if ($("#input_color").val() != "" && $("#input_name").val() != "" && $("#input_code").val() != "") {
@@ -67,7 +78,7 @@
                 if (document.getElementById('paint_buzzer_border').checked) {
                     $("#buzzer").css('border-color', msg.Color);
                 }
-                $("#" + msg.SocketID).css('border', "solid 2px yellow");
+                $("#" + msg.SocketID).css('border', "solid 2px blue");
                 $("#buzzer").prop("disabled", true);
             });
             socket.on('buzzer unlocked', function (msg) {
@@ -98,7 +109,13 @@
                 $("#question").text("");
             });
             socket.on('new game', function (msg) {
-                location.reload();
+                socket.emit('ini buzzer', "");
+            });
+            socket.on('open link', function (msg) {
+                window.open(msg);
+            });
+            socket.on('show error', function (msg) {
+                alert("Es ist ein Fehler aufgetreten. Fehlercode: " + msg);
             });
             socket.on('update ranking', function (msg) {
                 $("#ranking").text("");
@@ -137,11 +154,77 @@
 
             $('#failed_sound').change(function () {
                 $('#sound_failed_area').toggle(this.checked);
+                Cookies.set('fail_sound', $("#failed_sound").prop('checked'), { expires: 3650 });
             }).change()
 
             $('#success_sound').change(function () {
                 $('#sound_success_area').toggle(this.checked);
+                Cookies.set('success_sound', $("#success_sound").prop('checked'), { expires: 3650 });
             }).change()
+
+            $("#success_range").change(function () {
+                Cookies.set('success_sound_volume', $("#success_range").val(), { expires: 3650 });
+            })
+
+            $("#failed_range").change(function () {
+                Cookies.set('fail_sound_volume', $("#failed_range").val(), { expires: 3650 });
+            })
+
+            $("#input_success_sound").change(function () {
+                Cookies.set('success_sound_track', $("#input_success_sound").val(), { expires: 3650 })
+            })
+
+            $("#input_failed_sound").change(function () {
+                Cookies.set('fail_sound_track', $("#input_failed_sound").val(), { expires: 3650 })
+            })
+
+            $("#paint_buzzer_border").change(function () {
+                Cookies.set('buzzer_border', $("#paint_buzzer_border").prop('checked'), { expires: 3650 })
+            })
+
+            $("#input_leave_confirm").change(function () {
+                Cookies.set('leave_confirm', $("#input_leave_confirm").prop('checked'), { expires: 3650 })
+            })
+
+            function goodbye(e) {
+                if (document.getElementById("input_leave_confirm").checked) {
+                    if (!e) e = window.event;
+                    //e.cancelBubble is supported by IE - this will kill the bubbling process.
+                    e.cancelBubble = true;
+                    e.returnValue = 'Buzzer wirklich verlassen?'; //This is displayed on the dialog
+
+                    //e.stopPropagation works in Firefox.
+                    if (e.stopPropagation) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                    }
+                }
+            }
+
+            function LoadCookies() {
+                if (Cookies.get("success_sound") != undefined) {
+                    $("#success_sound").prop('checked', Cookies.get("success_sound") == 'true');
+                }
+                if (Cookies.get("success_sound_volume") != undefined) {
+                    $("#success_range").val(Cookies.get("success_sound_volume"));
+                }
+                
+                if (Cookies.get("fail_sound") != undefined) {
+                    $("#failed_sound").prop('checked', Cookies.get("fail_sound") == 'true');
+                }
+                if (Cookies.get("fail_sound_volume") != undefined) {
+                    $("#failed_range").val(Cookies.get("fail_sound_volume"));
+                }
+               
+                if (Cookies.get("buzzer_border") != undefined) {
+                    $("#paint_buzzer_border").prop('checked', Cookies.get("buzzer_border") == 'true');
+                }
+                if (Cookies.get("leave_confirm") != undefined) {
+                    $("#input_leave_confirm").prop('checked', Cookies.get("leave_confirm") == 'true');
+                }
+            }
+
+            window.onbeforeunload = goodbye;
         });
     </script>
     <style>
@@ -163,7 +246,7 @@
         <br />
         <br />
         <div class="row d-flex justify-content-center">
-            <div id="question_field" class="col-md-5" style="border: solid 1px #cfcfcf; height:100px;border-radius: 7px;">
+            <div id="question_field" class="col-lg-5" style="border: solid 1px #cfcfcf; height:100px;border-radius: 7px;">
                 <p id="question"></p>
             </div>
         </div>
@@ -173,51 +256,79 @@
             <p class="h2" id="name"></p>
         </div>-->
         <div class="text-center row">
-            <div class="col-sm-3">
+            <div class="col-lg-3">
                 <table class="table">
                     <thead></thead>
                     <tbody id="ranking"></tbody>
                 </table>
             </div>
-            <div class="col-sm-6">
+            <div class="col-lg-6">
                 <input type="button" class="btn" value="" id="buzzer" style="background-color:red; width: 350px; height: 350px; border: solid 50px grey;border-radius: 50px;margin:auto" />
             </div>
         </div>
         <br />
         <br />
         <hr />
-        <div class="row">
+        <div class="row d-flex justify-content-between" style="width:100%">
             <div>
-                <input id="btn_options" type="button" class="btn btn-primary" value="Optionen" style="margin-left:15px" />
+                <input id="btn_options" type="button" class="btn btn-primary" value="&#9881; Optionen" style="margin-left:15px" data-toggle="modal" data-target="#option_Modal"/>
             </div>
-            <div id="option_area" style="display:none; margin-left:15px">
-                <div>
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
-                        <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzen abspielen.</label>
-                    </div>
-                    <div id="sound_success_area">
-                        <select class="form-control" id="input_success_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
-                        <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_success" />
-                        <input type="range" class="custom-range" id="success_range">
+            <span style="font-size: 12px;color: gray;margin-top: -15px;">Beta V1.1.0 @ SirZento</span>
+        </div>
+    </div>
+
+
+    <!-- Option Modal -->
+    <div class="modal" id="option_Modal" tabindex="-1" role="dialog" aria-labelledby="option_ModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="option_ModalLongTitle">Einstellungen</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="option_area" style="margin-left:15px; margin-right:15px">
+                        <div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="success_sound" checked="checked">
+                                <label class="custom-control-label" for="success_sound">Sound beim erfolgreichem Buzzen abspielen.</label>
+                            </div>
+                            <div id="sound_success_area">
+                                <select class="form-control" id="input_success_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
+                                <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_success" />
+                                <input type="range" class="custom-range" id="success_range">
+                            </div>
+                        </div>
+                        <br />
+                        <div>
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="failed_sound" checked="checked">
+                                <label class="custom-control-label" for="failed_sound">Sound wenn jemand anderes Buzzert abspielen.</label>
+                            </div>
+                            <div id="sound_failed_area">
+                                <select class="form-control" id="input_failed_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
+                                <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_failed" />
+                                <input type="range" class="custom-range" id="failed_range">
+                            </div>
+                        </div>
+                        <br />
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="paint_buzzer_border" checked="checked">
+                            <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umf&auml;rben beim Buzzern.</label>
+                        </div>
+                        <br />
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="input_leave_confirm" checked="checked">
+                            <label class="custom-control-label" for="input_leave_confirm">Best&auml;tigung beim schlie&szlig;en des Fentsers.</label>
+                        </div>
+                        
                     </div>
                 </div>
-                <br />
-                <div>
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="failed_sound" checked="checked">
-                        <label class="custom-control-label" for="failed_sound">Sound wenn jemand anderes Buzzert abspielen.</label>
-                    </div>
-                    <div id="sound_failed_area">
-                        <select class="form-control" id="input_failed_sound" style="margin-bottom: 5px;margin-top:5px;"></select>
-                        <input type="button" class="btn btn-outline-secondary" value="Play" id="btn_play_failed" />
-                        <input type="range" class="custom-range" id="failed_range">
-                    </div>
-                </div>
-                <br />
-                <div class="custom-control custom-checkbox">
-                    <input type="checkbox" class="custom-control-input" id="paint_buzzer_border" checked="checked">
-                    <label class="custom-control-label" for="paint_buzzer_border">Buzzer Rahmen umf&auml;rben beim Buzzern.</label>
+                <div class="modal-footer">
+                    <input type="button" class="btn btn-info" value="Popup-Testen" id="btn_test_popup" />
+                    <button type="button" class="btn btn-success" data-dismiss="modal">Schlie&szlig;en</button>
                 </div>
             </div>
         </div>
@@ -225,7 +336,7 @@
 
 
     <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter" style="visibility:collapse" id="show_modal"></button>
-    <!-- Modal -->
+    <!-- Start Modal -->
     <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-backdrop="static" data-keyboard="false">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
@@ -237,7 +348,7 @@
                         <div class="form-group row">
                             <label for="inputEmail3" class="col-sm-2 col-form-label">Name:</label>
                             <div class="col-sm-10">
-                                <input type="text" id="input_name" value="" class="form-control" placeholder="Name" />
+                                <input type="text" id="input_name" value="" class="form-control" placeholder="Name" maxlength="10"/>
                             </div>
                         </div>
                         <div class="form-group row">

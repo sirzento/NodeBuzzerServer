@@ -1,0 +1,14 @@
+1000: Fehler bei der Initialization des Buzzers
+1001: Fehler beim Überprüfen des Codes
+1002: Fehler beim Erstellen eines Raumes
+1003: Fehler beim Betreten eines Raumes als Admin
+1004: Fehler beim Verarbeiten eines gedrücktem Buzzers
+1005: Fehler beim Freischalten des Buzzers
+1006: Fehler beim Löschen der Frage
+1007: Fehler beim Senden der Frage
+1008: Fehler beim erstellen eines neuen Spieles
+1009: Fehler beim addieren der Punkte
+1010: Fehler beim Verarbeiten des Links
+1011: Fehler beim Hinzufügen eines neuen Spielers
+1012: Fehler beim verlassen des Spieles
+1013: Fehler beim ändern der Punkte eines Spielers

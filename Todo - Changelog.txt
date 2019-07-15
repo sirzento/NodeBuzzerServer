@@ -1,0 +1,43 @@
+High: 
+
+
+Medium:
+ => Subdomaine einrichten (buzzer.guerillagaming.eu & buzzer.guerillagaming.eu/admin)
+ => Https only einrichten.
+ => Feld für Schätzfragen einrichten
+ => Impressum
+ => Kick System
+ => Schöner machen ._.
+
+Low:
+ => Buzzer Styles
+ => Mehr Sounds
+
+
+
+
+
+Done:
+
+Beta V1.1.0:
+ Major:
+ => Manuelle Punktevergabe
+ => Daten in cookies speichern
+ => Popup zum öffnen von links etc
+
+ Minor:
+ => Responive machen
+ => New Game überarbeiten
+ => Bestätigung beim schließen. + Option
+ => Option Fenster bearbeitet
+ => Name auf länge begrenzen
+ => Logs schreiben für pm2
+ => Admin Fragen Feld wird gelöscht nach dem Senden
+ => Versionsnummer auf der Webseite
+ => Test Button für Popup
+ => Programm Fehler sicher machen + Error log schreiben.
+
+
+
+
+

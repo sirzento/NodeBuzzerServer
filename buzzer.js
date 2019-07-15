@@ -127,7 +127,6 @@ io.on('connection', function (socket) {
                     GameList.find(x => x.Code === socket.handshake.session.Room).BuzzerInfo = false;
                     GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress = tempPress;
                     WriteLog("'"+GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress.Name + "' im Raum '" + socket.handshake.session.Room + "' hat den Buzzer gedrueckt", "INFO");
-                    console.log("'" +GameList.find(x => x.Code === socket.handshake.session.Room).CurrentPress.Name + "' im Raum '" + socket.handshake.session.Room + "' hat den Buzzer gedrueckt");
                     //Nachricht an den Spieler, der Erfolgreich gedrückt hat
                     socket.emit('successful pressed', "");
                     //Nachricht an ale anderen das jemand gedrückt hat
@@ -248,7 +247,6 @@ io.on('connection', function (socket) {
     socket.on('new player', function (msg) {
         try {
             GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.push(NewPlayer(msg.split(";")[0], msg.split(";")[1], socket.id));
-            console.log("Spieler " + msg.split(";")[0] + " ist dem Raum '" + socket.handshake.session.Room + "' beigetreten.");
             WriteLog("Spieler " + msg.split(";")[0] + " ist dem Raum '" + socket.handshake.session.Room + "' beigetreten.", "INFO");
             UpdateRanking(socket);
         } catch (e) {
@@ -265,7 +263,6 @@ io.on('connection', function (socket) {
             if (GameList.find(x => x.Code === socket.handshake.session.Room) != null) {
                 if (GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; }) != null) {
                     var player = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.find(function (element) { return element.SocketID == socket.id; });
-                    console.log("Spieler " + player.Name + " hat den Raum '" + socket.handshake.session.Room + "' verlassen.");
                     WriteLog("Spieler " + player.Name + " hat den Raum '" + socket.handshake.session.Room + "' verlassen.", "INFO");
                     GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist = GameList.find(x => x.Code === socket.handshake.session.Room).Playerlist.filter(function (obj) {
                         return obj.SocketID != socket.id;
@@ -346,6 +343,7 @@ function WriteLog(msg, type) {
     var dateTime = date + ' ' + time;
 
     logStream.write(dateTime + "\t" + type + ": \t " + msg + "\n");
+    console.log(dateTime + "     " + type + ":   " + msg);
 }
 
 
